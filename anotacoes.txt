@@ -1,0 +1,17 @@
+composer global require laravel/installer
+laravel new laravel-autenticacao
+cd laravel11-autenticacao
+php arsisan migrate
+php artisan install:api
+
+composer require tymon/jwt-auth
+php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+php artisan jwt:secret
+
+#criação e ajustes no app/Http/Middleware/JWTMiddleware.php
+#bootstrap/app.php instead of Kernel.php - adiciona referencia ao Middleware JWT
+
+
+composer require spatie/laravel-permission
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+php artisan migrate
