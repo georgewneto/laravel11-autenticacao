@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\JwtMiddleware;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\StartPermissionController;
+use App\Http\Controllers\RoleController;
 
 /*
 Route::get('/user', function (Request $request) {
@@ -21,6 +23,17 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('updatepassword', [AuthController::class, 'updatepassword']);
     Route::post('refresh', [AuthController::class, 'refresh']);
+
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('permissions', PermissionController::class);
+
+    // Rotas de Roles
+    Route::post('roles/assign', [RoleController::class, 'assignRoleToUser']);
+    Route::post('roles/remove', [RoleController::class, 'removeRoleFromUser']);
+    // Rotas de Permissions
+    Route::post('permissions/assign', [PermissionController::class, 'assignPermissionToUser']);
+    Route::post('permissions/remove', [PermissionController::class, 'removePermissionFromUser']);
+
     //Rota para cadastrar e configurar permissões
-    //Route::get('permission', [PermissionController::class, 'index']);
+    //Route::get('startpermission', [StartPermissionController::class, 'index']);
 });

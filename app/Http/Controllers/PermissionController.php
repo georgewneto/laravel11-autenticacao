@@ -2,34 +2,91 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Http;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\User;
 
 class PermissionController extends Controller
 {
     public function index()
     {
-        // Cria uma permissão
-        Permission::create(['name' => 'edit users']);
+        $permissions = Permission::all();
+        return response()->json($permissions);
+    }
 
-        // Cria um papel e atribui permissão a ele
-        $role = Role::create(['name' => 'admin']);
-        $role->givePermissionTo('edit users');
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|unique:permissions',
+        ]);
 
-        $user = User::find(1);
-        $user->assignRole('admin');
+        $permission = Permission::create(['name' => $request->name]);
 
-        $user2 = User::find(2);
-        $user2->assignRole('admin');
+        return response()->json([
+            'message' => 'Permission created successfully.',
+            'permission' => $permission,
+        ], 201);
+    }
 
-        return json_encode("OK");
+    public function show($id)
+    {
+        $permission = Permission::findOrFail($id);
+        return response()->json($permission);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $permission = Permission::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|unique:permissions,name,' . $permission->id,
+        ]);
+
+        $permission->update(['name' => $request->name]);
+
+        return response()->json([
+            'message' => 'Permission updated successfully.',
+            'permission' => $permission,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $permission = Permission::findOrFail($id);
+        $permission->delete();
+
+        return response()->json(['message' => 'Permission deleted successfully.']);
+    }
+
+    public function assignPermissionToUser(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->givePermissionTo($request->permission);
+
+        return response()->json([
+            'message' => 'Permission assigned to user successfully.',
+            'user' => $user->load('permissions'),
+        ]);
+    }
+
+    public function removePermissionFromUser(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->revokePermissionTo($request->permission);
+
+        return response()->json([
+            'message' => 'Permission removed from user successfully.',
+            'user' => $user->load('permissions'),
+        ]);
     }
 }
