@@ -7,6 +7,7 @@ use App\Http\Middleware\JwtMiddleware;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\StartPermissionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 
 /*
 Route::get('/user', function (Request $request) {
@@ -23,6 +24,14 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('updatepassword', [AuthController::class, 'updatepassword']);
     Route::post('refresh', [AuthController::class, 'refresh']);
+
+    Route::group(['prefix' => 'users'], function () {
+        Route::get('/', [UserController::class, 'index'])->name('users.index');
+        Route::post('/store', [UserController::class, 'store'])->name('users.store');
+        Route::get('/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
+        Route::post('/update', [UserController::class, 'update'])->name('users.update');
+        Route::get('/delete/{id}', [UserController::class, 'delete'])->name('users.delete');
+    });
 
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('permissions', PermissionController::class);
