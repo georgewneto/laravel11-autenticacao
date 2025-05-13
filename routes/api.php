@@ -40,8 +40,10 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::post('roles/assign', [RoleController::class, 'assignRoleToUser']);
     Route::post('roles/remove', [RoleController::class, 'removeRoleFromUser']);
     // Rotas de Permissions
-    Route::post('permissions/assign', [PermissionController::class, 'assignPermissionToUser']);
-    Route::post('permissions/remove', [PermissionController::class, 'removePermissionFromUser']);
+    //Route::post('permissions/assign', [PermissionController::class, 'assignPermissionToUser']);
+    //Route::post('permissions/remove', [PermissionController::class, 'removePermissionFromUser']);
+    Route::post('permissions/assign', [PermissionController::class, 'assignPermissionToRole']);
+    Route::post('permissions/remove', [PermissionController::class, 'removePermissionFromRole']);
 
     //Rota para cadastrar e configurar permissões
     //Route::get('startpermission', [StartPermissionController::class, 'index']);

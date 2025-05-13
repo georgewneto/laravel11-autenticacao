@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use App\Models\User;
 
 class PermissionController extends Controller
@@ -87,6 +88,38 @@ class PermissionController extends Controller
         return response()->json([
             'message' => 'Permission removed from user successfully.',
             'user' => $user->load('permissions'),
+        ]);
+    }
+
+    public function assignPermissionToRole(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|string|exists:roles,name',
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $role = Role::findByName($request->role);
+        $role->givePermissionTo($request->permission);
+
+        return response()->json([
+            'message' => 'Permission assigned to user successfully.',
+            'role' => $role->load('permissions'),
+        ]);
+    }
+
+    public function removePermissionFromRole(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|string|exists:roles,name',
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $role = Role::findByName($request->role);
+        $role->revokePermissionTo($request->permission);
+
+        return response()->json([
+            'message' => 'Permission removed from user successfully.',
+            'role' => $role->load('permissions'),
         ]);
     }
 }

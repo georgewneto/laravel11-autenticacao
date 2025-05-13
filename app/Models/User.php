@@ -62,8 +62,13 @@ class User extends Authenticatable implements JWTSubject
         return [
             //'email' => $this->email,
             'name' => $this->name,
-            'roles' => $this->getRoleNames(), // Retorna um array de papéis do usuário
-            'permissions' => $this->getAllPermissions()->pluck('name'), // Retorna um array de permissões
+            'roles' => $this->roles->map(function ($role) {
+                return [
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->pluck('name'),
+                ];
+            }),
+            //'permissions' => $this->getAllPermissions()->pluck('name'), // Retorna um array de permissões
         ];
     }
 }

@@ -11,7 +11,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::all();
-        return response()->json($roles);
+        return response()->json($roles->load('permissions'));
     }
 
     public function store(Request $request)

@@ -15,7 +15,7 @@ class UserController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $users,
+            'data' => $users->load('roles.permissions'),
         ]);
     }
 
@@ -26,8 +26,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'cpf' => 'required|string|max:14',
-            'telefone' => 'nullable|string|max:15',
-            'role' => 'required|string',
+            'telefone' => 'nullable|string|max:15'
         ]);
 
         if ($validator->fails()) {
@@ -43,13 +42,12 @@ class UserController extends Controller
         $user->password = bcrypt($request->input('password'));
         $user->cpf = $request->input('cpf');
         $user->telefone = $request->input('telefone');
-        $user->role = $request->input('role');
         $user->save();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Usuário adicionado com sucesso!',
-            'data' => $user,
+            'data' => $user->load('roles.permissions'),
         ]);
     }
 
@@ -66,7 +64,7 @@ class UserController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $user,
+            'data' => $user->load('roles.permissions'),
         ]);
     }
 
@@ -86,8 +84,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6',
             'cpf' => 'required|string|max:14',
-            'telefone' => 'nullable|string|max:15',
-            'role' => 'required|string',
+            'telefone' => 'nullable|string|max:15'
         ]);
 
         if ($validator->fails()) {
@@ -104,13 +101,12 @@ class UserController extends Controller
         }
         $user->cpf = $request->input('cpf');
         $user->telefone = $request->input('telefone');
-        $user->role = $request->input('role');
         $user->save();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Usuário atualizado com sucesso!',
-            'data' => $user,
+            'data' => $user->load('roles.permissions'),
         ]);
     }
 

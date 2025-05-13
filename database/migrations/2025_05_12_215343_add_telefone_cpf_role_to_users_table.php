@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('telefone')->nullable()->after('email');
             $table->string('cpf')->nullable()->unique()->after('telefone');
-            $table->string('role')->nullable()->default('user')->after('cpf');
         });
     }
 
@@ -24,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['telefone', 'cpf', 'role']);
+            $table->dropColumn(['telefone', 'cpf']);
         });
     }
 };
