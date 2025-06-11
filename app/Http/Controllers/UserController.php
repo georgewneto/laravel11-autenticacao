@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Uuid;
 
 class UserController extends Controller
 {
@@ -42,6 +43,7 @@ class UserController extends Controller
         $user->password = bcrypt($request->input('password'));
         $user->cpf = $request->input('cpf');
         $user->telefone = $request->input('telefone');
+        $user->chave = Uuid::uuid4()->toString(); // Gerando uma chave única para o usuário
         $user->save();
 
         return response()->json([

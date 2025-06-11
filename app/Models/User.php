@@ -26,6 +26,7 @@ class User extends Authenticatable implements JWTSubject
         'cpf',
         'telefone',
         'role',
+        'chave'
     ];
 
     /**
@@ -62,6 +63,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             //'email' => $this->email,
             'name' => $this->name,
+            'chave' => $this->chave,
             'roles' => $this->roles->map(function ($role) {
                 return [
                     'name' => $role->name,

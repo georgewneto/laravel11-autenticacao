@@ -11,6 +11,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Http;
 use App\Services\LogHubCloudService;
+use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
@@ -46,6 +47,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'chave' => Uuid::uuid4()->toString(), // Gerando uma chave única para o usuário
         ]);
 
         $token = JWTAuth::fromUser($user);
