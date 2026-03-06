@@ -25,9 +25,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     libzip-dev \
     zlib1g-dev \
-    certbot \
-    openssl \
-    ca-certificates \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -50,27 +47,9 @@ RUN chmod -R 777 /var/www/storage/logs/laravel.log
 RUN chmod -R 777 /var/www/storage/framework/sessions/
 RUN chmod -R 777 /var/www/storage/framework/views/
 
-# Create SSL directory
-RUN mkdir -p /var/www/ssl
-
-# Use Let's Encrypt for development with mkcert (more browser-friendly)
-RUN apt-get update && apt-get install -y libnss3-tools wget && \
-    wget -O /usr/local/bin/mkcert https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-amd64 && \
-    chmod +x /usr/local/bin/mkcert && \
-    mkdir -p /root/.local/share/mkcert
-
-# Set permission for the SSL directory
-RUN chown -R www:www /var/www/ssl
-
-# Add script to generate certificates
-COPY --chown=www:www ./docker/generate-cert.sh /var/www/generate-cert.sh
-RUN chmod +x /var/www/generate-cert.sh
-
 # Change the current user to www
 USER www
 
-# Expose both HTTP and HTTPS ports
-EXPOSE 8008 8443
-
-# Start Laravel with HTTPS support using the artisan serve command
+# Expose the port and start the PHP built-in server
+EXPOSE 8008
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8008"]
