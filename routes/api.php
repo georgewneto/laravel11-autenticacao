@@ -17,6 +17,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('login-cpf', [AuthController::class, 'loginCpf']);
 Route::post('forgotpassword', [AuthController::class, 'forgotpassword']);
 
 Route::middleware([JwtMiddleware::class])->group(function () {

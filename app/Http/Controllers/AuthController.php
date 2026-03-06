@@ -10,19 +10,10 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Http;
-use App\Services\LogHubCloudService;
 use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
-    protected $logHubCloudService;
-    protected $logger = [];
-
-    public function __construct()
-    {
-        $this->logHubCloudService = new LogHubCloudService();
-    }
-
     // Registrar um novo usuário
     public function register(Request $request)
     {
@@ -33,13 +24,6 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-
-            //LogHubCloud
-            $this->logger['function'] = 'register';
-            $this->logger['message'] = 'Erro tentando criar usuario. nome: '. $request->name . ' email: '. $request->email;
-            $this->logger['type'] = 4;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json($validator->errors(), 422);
         }
 
@@ -52,12 +36,6 @@ class AuthController extends Controller
 
         $token = JWTAuth::fromUser($user);
 
-        //LogHubCloud
-        $this->logger['function'] = 'register';
-        $this->logger['message'] = 'Usuário criado com sucesso. nome: '. $request->name . ' email: '. $request->email;
-        $this->logger['type'] = 1;
-        $this->logHubCloudService->logger($this->logger);
-
         return response()->json(compact('user', 'token'), 201);
     }
 
@@ -66,21 +44,19 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
-
-            //LogHubCloud
-            $this->logger['function'] = 'login';
-            $this->logger['message'] = 'Credenciais inválidas. email: '. $request->email;
-            $this->logger['type'] = 4;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json(['error' => 'Credenciais inválidas.'], 401);
         }
 
-        //LogHubCloud
-        $this->logger['function'] = 'login';
-        $this->logger['message'] = 'Login efetuado com sucesso. email: '. $request->email;
-        $this->logger['type'] = 1;
-        $this->logHubCloudService->logger($this->logger);
+        return response()->json(compact('token'));
+    }
+
+    // Login do usuário via Cpf
+    public function loginCpf(Request $request)
+    {
+        $credentials = $request->only('cpf', 'password');
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['error' => 'Credenciais inválidas.'], 401);
+        }
 
         return response()->json(compact('token'));
     }
@@ -89,12 +65,6 @@ class AuthController extends Controller
     public function me()
     {
         $dados = Auth::user();
-
-        //LogHubCloud
-        $this->logger['function'] = 'me';
-        $this->logger['message'] = 'Dados de ' . $dados->email;
-        $this->logger['type'] = 0;
-        $this->logHubCloudService->logger($this->logger);
 
         return response()->json($dados);
     }
@@ -160,13 +130,6 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-
-            //LogHubCloud
-            $this->logger['function'] = 'forgotpassword';
-            $this->logger['message'] = 'Email inexistente: ' . $request->email;
-            $this->logger['type'] = 2;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json([
                 'status' => 'error',
                 'message' => 'Email inexistente',
@@ -194,22 +157,8 @@ class AuthController extends Controller
 
         // Verificando se a requisição foi bem-sucedida
         if ($response->successful()) {
-
-            //LogHubCloud
-            $this->logger['function'] = 'forgotpassword';
-            $this->logger['message'] = 'Email inexistente: ' . $request->email;
-            $this->logger['type'] = 1;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json(['message' => 'Email enviado com sucesso!']);
         } else {
-
-            //LogHubCloud
-            $this->logger['function'] = 'forgotpassword';
-            $this->logger['message'] = 'Falha ao enviar o email: ' . $request->email;
-            $this->logger['type'] = 4;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json(['error' => 'Falha ao enviar o email'], $response->status());
         }
     }
@@ -218,24 +167,11 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
-
-            //LogHubCloud
-            $this->logger['function'] = 'updatepassword';
-            $this->logger['message'] = 'Credenciais inválidas: ' . $request->email;
-            $this->logger['type'] = 4;
-            $this->logHubCloudService->logger($this->logger);
-
             return response()->json(['error' => 'Credenciais inválidas'], 401);
         }
         $user = User::where('email', $request->email)->first();
         $user->password = Hash::make($request->new_password);
         $user->save();
-
-        //LogHubCloud
-        $this->logger['function'] = 'updatepassword';
-        $this->logger['message'] = 'Senha alterada com sucesso: ' . $request->email;
-        $this->logger['type'] = 1;
-        $this->logHubCloudService->logger($this->logger);
 
         return response()->json(['message' => 'Senha alterada com sucesso!']);
     }
