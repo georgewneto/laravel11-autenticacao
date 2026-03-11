@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install -y \
     certbot \
     openssl \
     ca-certificates \
+    nginx \
+    supervisor \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalar extensões do PHP
@@ -36,10 +38,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Instalar FrankenPHP
-RUN curl -sSL https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-x86_64 -o /usr/local/bin/frankenphp \
-    && chmod +x /usr/local/bin/frankenphp
 
 # Adicionar usuário para a aplicação
 RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
@@ -70,27 +68,33 @@ RUN chown -R www:www /var/www/ssl
 COPY --chown=www:www ./docker/generate-cert.sh /var/www/generate-cert.sh
 RUN chmod +x /var/www/generate-cert.sh
 
-# Create SSL directory
-RUN mkdir -p /var/www/ssl
+# Copy Nginx configuration
+COPY ./docker/nginx.conf /etc/nginx/sites-available/default
 
-# Use Let's Encrypt for development with mkcert (more browser-friendly)
-RUN apt-get update && apt-get install -y libnss3-tools wget && \
-    wget -O /usr/local/bin/mkcert https://github.com/FiloSottile/mkcert/releases/download/v1.4.3/mkcert-v1.4.3-linux-amd64 && \
-    chmod +x /usr/local/bin/mkcert && \
-    mkdir -p /root/.local/share/mkcert
+# Create supervisor configuration for Nginx and PHP-FPM
+RUN echo '[supervisord]' > /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'nodaemon=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '[program:php-fpm]' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'command=/usr/local/sbin/php-fpm' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autostart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autorestart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile=/dev/stdout' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile=/dev/stderr' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo '[program:nginx]' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'command=/usr/sbin/nginx -g "daemon off;"' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autostart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'autorestart=true' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile=/dev/stdout' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stdout_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile=/dev/stderr' >> /etc/supervisor/conf.d/supervisord.conf && \
+    echo 'stderr_logfile_maxbytes=0' >> /etc/supervisor/conf.d/supervisord.conf
 
-# Set permission for the SSL directory
-RUN chown -R www:www /var/www/ssl
+# Expose HTTP and HTTPS ports
+EXPOSE 80 443
 
-# Add script to generate certificates
-COPY --chown=www:www ./docker/generate-cert.sh /var/www/generate-cert.sh
-RUN chmod +x /var/www/generate-cert.sh
-
-# Mudar para o usuário www
-USER www
-
-# Expose both HTTP and HTTPS ports
-EXPOSE 8008 8443
-
-# Start Laravel with HTTPS support using the artisan serve command
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8008"]
+# Start services with supervisor
+CMD ["/bin/bash", "-c", "/var/www/generate-cert.sh ${APP_DOMAIN:-localhost} && /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
