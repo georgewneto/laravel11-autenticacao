@@ -146,14 +146,24 @@ class AuthController extends Controller
         $token = JWTAuth::attempt($credentials);
 
         //enviar um email com esta senha para o usuário
+        /*
         $dados_email = [
             'email' => $request->email,
             'subject' => 'Esqueci minha senha',
             'message' => 'Olá, ' . $user->name . '! Sua senha foi alterada para: ' . $securePassword
         ];
+        */
+        $dados_email = [
+            'email_destino' => $request->email,
+            'assunto' => 'Esqueci minha senha',
+            'corpo' => 'Olá, ' . $user->name . '! Sua senha foi alterada para: ' . $securePassword,
+            'from_email' => 'avisos@prefeituradeitabuna.com.br',
+            'from_name' => 'Prefeitura Municipal de Itabuna - Avisos',
+        ];
 
         // Enviando a requisição POST para a API externa
-        $response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/send-email/', $dados_email);
+        //$response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/send-email/', $dados_email);
+        $response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/store/', $dados_email);
 
         // Verificando se a requisição foi bem-sucedida
         if ($response->successful()) {
