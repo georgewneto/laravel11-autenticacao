@@ -31,12 +31,7 @@ pipeline {
                     // 2. Sobe o novo container
                     // Ajuste as portas e o link com o banco de dados conforme necessário
                     sh """
-                        docker run -d \
-                        --name ${APP_NAME} \
-                        --restart unless-stopped \
-                        -p 8008:443 \
-                        --env-file .env \
-                        ${IMAGE_NAME}
+                        docker run -d --name ${APP_NAME} --restart unless-stopped -p 8008:443 --env-file /home/georgewneto/Projetos/autenticacao/.env ${IMAGE_NAME}
                     """
                 }
             }
