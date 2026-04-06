@@ -27,7 +27,7 @@ pipeline {
                 script {
                     // 1. Para e remove o container antigo (se existir)
                     sh "docker stop ${APP_NAME} || true && docker rm ${APP_NAME} || true"
-                    
+
                     // 2. Sobe o novo container
                     // Ajuste as portas e o link com o banco de dados conforme necessário
                     sh """
@@ -39,12 +39,19 @@ pipeline {
 
         stage('Post-Deploy Tasks') {
             steps {
+                // Copia as chaves JWT para o container
+                sh "docker cp /home/georgewneto/Projetos/autenticacao/storage/jwt/jwt-private.key ${APP_NAME}:/app/storage/jwt/"
+                sh "docker cp /home/georgewneto/Projetos/autenticacao/storage/jwt/jwt-public.key ${APP_NAME}:/app/storage/jwt/"
+
+                // Instala as dependências do Laravel
+                sh "docker exec ${APP_NAME} composer install --no-interaction"
+
                 // Roda as migrações dentro do novo container
                 sh "docker exec ${APP_NAME} php artisan migrate --force"
                 sh "docker exec ${APP_NAME} php artisan config:cache"
             }
         }
-        
+
         stage('Cleanup') {
             steps {
                 // Remove imagens antigas "soltas" para não lotar o disco
