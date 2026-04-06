@@ -39,9 +39,17 @@ pipeline {
 
         stage('Post-Deploy Tasks') {
             steps {
+                // Cria a pasta jwt com permissões corretas
+                sh "docker exec ${APP_NAME} mkdir -p /app/storage/jwt"
+
                 // Copia as chaves JWT para o container
                 sh "docker cp /home/georgewneto/Projetos/autenticacao/storage/jwt/jwt-private.key ${APP_NAME}:/app/storage/jwt/"
                 sh "docker cp /home/georgewneto/Projetos/autenticacao/storage/jwt/jwt-public.key ${APP_NAME}:/app/storage/jwt/"
+
+                // Define permissões corretas nos arquivos JWT
+                sh "docker exec ${APP_NAME} chmod 644 /app/storage/jwt/jwt-private.key"
+                sh "docker exec ${APP_NAME} chmod 644 /app/storage/jwt/jwt-public.key"
+                sh "docker exec ${APP_NAME} chown -R www-data:www-data /app/storage/jwt"
 
                 // Instala as dependências do Laravel
                 sh "docker exec ${APP_NAME} composer install --no-interaction"
