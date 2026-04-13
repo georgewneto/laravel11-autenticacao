@@ -4,6 +4,7 @@ namespace App\Logging;
 
 use Monolog\Logger;
 use Monolog\Handler\GelfHandler;
+use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
 use Gelf\Transport\UdpTransport;
 use Gelf\Publisher;
@@ -45,15 +46,15 @@ class GraylogLoggerFactory
      */
     private function getApplicationProcessor(array $config)
     {
-        return function (array $record) use ($config) {
+        return function (LogRecord $record) use ($config) {
             // Adiciona o identificador da aplicação
             $appIdentifier = $config['app_id'] ?? 'PROCESSOSELETIVO';
 
             // Adiciona campos customizados no GELF (usando _ prefix)
-            $record['extra']['_application'] = $appIdentifier;
-            $record['extra']['_facility'] = 'laravel';
-            $record['extra']['_environment'] = app()->environment();
-            //$record['extra']['_version'] = config('app.version', '1.0');
+            $record->extra['_application'] = $appIdentifier;
+            $record->extra['_facility'] = 'laravel';
+            $record->extra['_environment'] = app()->environment();
+            //$record->extra['_version'] = config('app.version', '1.0');
 
             return $record;
         };
