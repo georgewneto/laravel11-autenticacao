@@ -11,6 +11,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Http;
 use Ramsey\Uuid\Uuid;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -24,6 +25,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::error('Cadastro de usuário falhou', [$validator->errors()]);
             return response()->json($validator->errors(), 422);
         }
 
@@ -35,7 +37,7 @@ class AuthController extends Controller
         ]);
 
         $token = JWTAuth::fromUser($user);
-
+        Log::info('Cadastro de usuário realizado com sucesso', [$request->email]);
         return response()->json(compact('user', 'token'), 201);
     }
 
@@ -44,9 +46,10 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
+            Log::error('Login via email falhou', [$credentials]);
             return response()->json(['error' => 'Credenciais inválidas.'], 401);
         }
-
+        Log::info('Login via email realizado com sucesso', [$request->email]);
         return response()->json(compact('token'));
     }
 
@@ -55,9 +58,10 @@ class AuthController extends Controller
     {
         $credentials = $request->only('cpf', 'password');
         if (!$token = JWTAuth::attempt($credentials)) {
+            Log::error('Login via CPF falhou', [$credentials]);
             return response()->json(['error' => 'Credenciais inválidas.'], 401);
         }
-
+        Log::info('Login via CPF realizado com sucesso', [$request->cpf]);
         return response()->json(compact('token'));
     }
 
@@ -125,11 +129,13 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::error('Esqueci minha senha falhou', [$validator->errors()]);
             return response()->json($validator->errors(), 422);
         }
 
         $user = User::where('email', $request->email)->first();
         if (!$user) {
+            Log::error('Esqueci minha senha falhou', ['Email inexistente']);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Email inexistente',
@@ -167,8 +173,10 @@ class AuthController extends Controller
 
         // Verificando se a requisição foi bem-sucedida
         if ($response->successful()) {
+            Log::info('Email de recuperação de senha enviado com sucesso', ['email' => $request->email]);
             return response()->json(['message' => 'Email enviado com sucesso!']);
         } else {
+            Log::error('Falha ao enviar email de recuperação de senha', ['email' => $request->email]);
             return response()->json(['error' => 'Falha ao enviar o email'], $response->status());
         }
     }
