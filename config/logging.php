@@ -54,8 +54,18 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', env('LOG_STACK', 'single')),
+            //'channels' => explode(',', env('LOG_STACK', 'single')),
+            'channels' => ['single', 'graylog'], // Adiciona o canal graylog ao stack),
             'ignore_exceptions' => false,
+        ],
+
+        'graylog' => [
+            'driver' => 'custom',
+            'via' => App\Logging\GraylogLoggerFactory::class,
+            'host' => env('GRAYLOG_HOST', '192.168.0.175'),
+            'port' => env('GRAYLOG_PORT', 12201),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'app_id' => env('GRAYLOG_APP_ID', 'APIAUTENTICACAO'),
         ],
 
         'single' => [
