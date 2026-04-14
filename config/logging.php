@@ -66,6 +66,7 @@ return [
             'port' => env('GRAYLOG_PORT', 12201),
             'level' => env('LOG_LEVEL', 'debug'),
             'app_id' => env('GRAYLOG_APP_ID', 'APIAUTENTICACAO'),
+            'system_name' => env('APP_NAME', 'API_AUTENTICACAO'),
         ],
 
         'single' => [
