@@ -169,7 +169,13 @@ class AuthController extends Controller
 
         // Enviando a requisição POST para a API externa
         //$response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/send-email/', $dados_email);
-        $response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/store/', $dados_email);
+        try {
+            $response = Http::withToken($token)->post(env('SERVICE_SENDMAIL').'/api/store/', $dados_email);
+        } catch (\Exception $e) {
+            Log::error('Erro ao enviar email de recuperação de senha', ['email' => $request->email, 'error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erro ao enviar o email'], 500);
+        }
+
 
         // Verificando se a requisição foi bem-sucedida
         if ($response->successful()) {
